@@ -10,7 +10,7 @@ export default class Agent extends Service {
     // 判断用户是否存在，存在发送验证码
     if (hasPhone) {
       // 查找
-      const codeList: [] = await redis.lrange('phone_code', 0, -1);
+      const codeList: any = await redis.lrange('phone_code', '0', -1);
       const codes: any = codeList.map((val: any) => JSON.parse(val));
       const curCode: any = codes.filter((val: any) => val.phone === phone);
       console.log(curCode.length);
@@ -27,13 +27,14 @@ export default class Agent extends Service {
       return { code: 400, message: '用户不存在' };
     }
   }
+  // 从 redis 验证验证码
   async testCode (phone: string, code: string) {
     const db: any = this.app.mongo;
     const redis: any = this.app.redis;
     const codeList: [] = await redis.lrange('phone_code', 0, -1);
     const codes: any = codeList.map((val: any) => JSON.parse(val));
     const curCode: any = codes.filter((val: any) => phone === val.phone && val.code === code);
-    if (curCode.lengnt !== 0) {
+    if (curCode.length !== 0) {
       const data = await db.findOne('api_legalperson', { query: { phone } });
       return { code: 200, data, message: null };
     } else {
