@@ -49,7 +49,9 @@ export default (appInfo: EggAppInfo) => {
   config.security = {
     csrf: {
       enable: false,
+      ignoreJSON: true,
     },
+    domainWhiteList: [ '*' ],
   };
   // config.mongodb = {
   //   app: true,
@@ -57,6 +59,10 @@ export default (appInfo: EggAppInfo) => {
   //   hosts: '127.0.0.1:27017',
   //   db: 'test1',
   // };
+  config.cors = {
+    origin: '*',
+    allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
+  };
   config.mongo = {
     client: {
       host: '127.0.0.1',

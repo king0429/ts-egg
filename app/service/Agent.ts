@@ -91,6 +91,35 @@ export default class Agent extends Service {
     const data = await db.findOne('api_contract', { query: { _id: new ObjectID(id) } });
     return data;
   }
+  // 获取记账相关信息
+  async chain (id: string) {
+    const db: any = this.app.mongo;
+    const sch: any = [
+      { name: 'contract', table: 'api_contract' },
+      { name: 'order', table: 'api_order' },
+      { name: 'deposit', table: 'api_deposit' },
+      { name: 'warehouse', table: 'api_warehouse' },
+      { name: 'transport', table: 'api_transport' },
+      { name: 'settlement', table: 'api_settlement' },
+      { name: 'invoice', table: 'api_invoice' },
+      { name: 'payment', table: 'api_payment' },
+    ];
+    interface Chain {
+      contract?: any;
+      order?: any;
+      deposit?: any;
+      warehouse?: any;
+      transport?: any;
+      settlement?: any;
+      invoice?: any;
+      payment?: any;
+    }
+    const detail: Chain = {};
+    for (const val of sch) {
+      detail[val.name] = await db.find(val.table, { limit: 5 });
+    }
+    return { detail, id };
+  }
   // 获取当前审核状态
   async getStatus (_id: string) {
     const db = this.ctx.app.mongo;
@@ -102,5 +131,87 @@ export default class Agent extends Service {
     } else {
       return '1';
     }
+  }
+  // 用户基本信息
+  async getPerson (_id: string, key: string) {
+    const db = this.ctx.app.mongo;
+    const data = await db.findOne('api_legalperson', { query: { _id: new ObjectID(_id) } });
+    if (key === '1') {
+      interface Person {
+        _id: string;
+        id: string;
+        name: string;
+        phone: string;
+        card_id: string;
+        role: any;
+        email: any;
+        office_phone: any;
+        wechat: any;
+        qq: any;
+      }
+      const person: Person = {
+        _id: data._id,
+        id: data.id,
+        name: data.legal_person_name,
+        card_id: data.legal_person_card_id,
+        phone: data.phone,
+        role: '操作员',
+        email: data.email,
+        office_phone: data.office_phone || null,
+        wechat: data.wechat || null,
+        qq: data.qq || null,
+      };
+      return person;
+    } else if (key === '2') {
+      interface CardPic {
+        legal_person_id_1: any;
+        legal_person_id_2: any;
+      }
+      const card: CardPic = {
+        legal_person_id_1: data.legal_person_id_1,
+        legal_person_id_2: data.legal_person_id_2,
+      };
+      return card;
+    } else if (key === '3') {
+      return { state: data.verified_LegalPerson };
+    } else {
+      return data;
+    }
+  }
+  // 设置用户基本信息
+  async setPerson (_id: string, data: any) {
+    const db: any = this.app.mongo;
+    interface PersonInfo {
+      email: any;
+      office_phone: any;
+      wechat: any;
+      qq: any;
+    }
+    const info: PersonInfo = {
+      email: data.email,
+      office_phone: data.office_phone,
+      wechat: data.wechat,
+      qq: data.qq,
+    };
+    const res = await db.findOneAndUpdate('api_legalperson', { filter: { _id: new ObjectID(_id) }, update: { $set: { ...info } } });
+    if (res) {
+      return { code: 200, message: null };
+    } else {
+      return { code: 400, message: '更新失败' };
+    }
+  }
+  // 消息列表
+  async messageList (page: any, pageSize: any) {
+    const db = this.app.mongo;
+    const limit: number = Number(pageSize || '10');
+    const p = page || 1;
+    const skip: number = Number((p - 1) * limit);
+    const data = await db.find('api_businessmessage', { limit, skip, sort: { id: 1 } });
+    return { data };
+  }
+  async messageDetail (_id: string) {
+    const db = this.app.mongo;
+    const data = await db.findOne('api_businessmessage', { query: { _id: new ObjectID(_id) } });
+    return data;
   }
 }

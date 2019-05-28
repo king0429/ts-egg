@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "egg": "^2.6.1",
+    "egg-cors": "^2.2.0",
     "egg-mongo-native": "^3.4.3",
     "egg-mongodb": "^1.1.1",
     "egg-mongoose": "^3.2.0",

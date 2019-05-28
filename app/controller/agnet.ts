@@ -12,6 +12,25 @@ export default class HomeController extends Controller {
     const { phone, code } = ctx.query;
     ctx.body = await ctx.service.agent.testCode(phone, code);
   }
+  public async person () {
+    const { ctx } = this;
+    let _id: string = '';
+    const restful = ctx.method;
+    switch (restful) {
+      case 'GET':
+        _id = ctx.query.id;
+        const key: string = ctx.query.key;
+        ctx.body = await ctx.service.agent.getPerson(_id, key);
+        break;
+      case 'PUT':
+        _id = ctx.request.body._id;
+        const data: object = ctx.request.body.data;
+        ctx.body = await ctx.service.agent.setPerson(_id, data);
+        break;
+      default:
+        break;
+    }
+  }
   public async Business () {
     const { ctx } = this;
     const restful = ctx.method;
@@ -44,5 +63,20 @@ export default class HomeController extends Controller {
     const { ctx } = this;
     const id = ctx.query.id;
     ctx.body = { status: await ctx.service.agent.getStatus(id) };
+  }
+  public async getChain () {
+    const { ctx } = this;
+    const id = ctx.query.id;
+    ctx.body = await ctx.service.agent.chain(id);
+  }
+  public async message () {
+    const { ctx } = this;
+    const _id = ctx.params._id;
+    if (_id) {
+      ctx.body = await ctx.service.agent.messageDetail(_id);
+    } else {
+      const { page, pageSize } = ctx.query;
+      ctx.body = await ctx.service.agent.messageList(page, pageSize);
+    }
   }
 }
