@@ -1,4 +1,5 @@
 import { Service } from 'egg';
+import { ObjectID } from 'mongodb';
 import $utils from '../utils';
 
 export default class Agent extends Service {
@@ -39,6 +40,67 @@ export default class Agent extends Service {
       return { code: 200, data, message: null };
     } else {
       return { code: 400, data: null, message: '验证码无效' };
+    }
+  }
+  // 获取当前关联企业
+  async getBuiness (_id: string) {
+    const db: any = this.app.mongo;
+    const data = await db.find('api_business', { limit: 5, projection: { _id: 1, id: 1, name: 1, legal_person_change_id: 1 } });
+    return data;
+  }
+  // 修改当前企业状态
+  async setBusiness (_id: string, sw: any) {
+    const db: any = this.app.mongo;
+    // const data = db.find('api_business', { query: { id } });
+    const data = await db.findOneAndUpdate('api_business', { filter: { _id: new ObjectID(_id) }, update: { $set: { legal_person_change_id: sw ? '1' : null } } }, { returnNewDocument: true });
+    return data;
+  }
+  // 合同列表
+  async contractList (id: string, type: string, contractType: string) {
+    interface Query {
+      business_id: string;
+      finished: string;
+      contract_type?: string;
+    }
+    const db: any = this.app.mongo;
+    const query: Query = contractType === '1' || contractType === '2' ? {
+      business_id: id,
+      finished: type,
+      contract_type: contractType,
+    } : {
+      business_id: id,
+      finished: type,
+    };
+    const data = await db.find('api_contract', { query, limit: 10 });
+    const list: [any] = data ? data.map((val: any) => {
+      return {
+        _id: val._id,
+        id: val.id,
+        name: val.name,
+        number: val.number,
+        date: val.create_time.replace(/\//g, '-'),
+        status: val.status,
+        contract_type: val.contract_type,
+      };
+    }) : [];
+    return list;
+  }
+  // 合同详情
+  async contractDetail (id: string) {
+    const db: any = this.app.mongo;
+    const data = await db.findOne('api_contract', { query: { _id: new ObjectID(id) } });
+    return data;
+  }
+  // 获取当前审核状态
+  async getStatus (_id: string) {
+    const db = this.ctx.app.mongo;
+    const data = await db.findOne('api_legalperson', { query: { _id: new ObjectID(_id) } });
+    if (data.verified_LegalPerson) {
+      return '3';
+    } else if (data.data.legal_person_id_1 && data.legal_person_id_2) {
+      return '2';
+    } else {
+      return '1';
     }
   }
 }
