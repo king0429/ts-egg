@@ -14,7 +14,6 @@ export default class Agent extends Service {
       const codeList: any = await redis.lrange('phone_code', '0', -1);
       const codes: any = codeList.map((val: any) => JSON.parse(val));
       const curCode: any = codes.filter((val: any) => val.phone === phone);
-      console.log(curCode.length);
       // 查找redis 是否有验证码
       if (curCode.length === 0) {
         const showCode = $utils.getCode();
@@ -43,10 +42,11 @@ export default class Agent extends Service {
     }
   }
   // 获取当前关联企业
-  async getBuiness (_id: string) {
+  async getBuiness (_id: string, len: any) {
     const db: any = this.app.mongo;
-    const data = await db.find('api_business', { limit: 5, projection: { _id: 1, id: 1, name: 1, legal_person_change_id: 1 } });
-    return data;
+    const l = Number(len) || 8;
+    const data = await db.find('api_business', { limit: l, projection: { _id: 1, id: 1, name: 1, legal_person_change_id: 1 } });
+    return { data, code: 200};
   }
   // 修改当前企业状态
   async setBusiness (_id: string, sw: any) {
@@ -100,6 +100,7 @@ export default class Agent extends Service {
       { name: 'deposit', table: 'api_deposit' },
       { name: 'warehouse', table: 'api_warehouse' },
       { name: 'transport', table: 'api_transport' },
+      { name: 'acceptance', table: 'api_acceptance' },
       { name: 'settlement', table: 'api_settlement' },
       { name: 'invoice', table: 'api_invoice' },
       { name: 'payment', table: 'api_payment' },
@@ -125,11 +126,11 @@ export default class Agent extends Service {
     const db = this.ctx.app.mongo;
     const data = await db.findOne('api_legalperson', { query: { _id: new ObjectID(_id) } });
     if (data.verified_LegalPerson) {
-      return '3';
+      return {status: '3', name: data.legal_person_name};
     } else if (data.data.legal_person_id_1 && data.legal_person_id_2) {
-      return '2';
+      return {status: '2', name: data.legal_person_name};
     } else {
-      return '1';
+      return {status: '1', name: data.legal_person_name};
     }
   }
   // 用户基本信息
@@ -207,11 +208,12 @@ export default class Agent extends Service {
     const p = page || 1;
     const skip: number = Number((p - 1) * limit);
     const data = await db.find('api_businessmessage', { limit, skip, sort: { id: 1 } });
-    return { data };
+    const d = data.map(val => ({...val, date: val.post_time.replace(/\//g, '-')}))
+    return { data: d, code: 200 };
   }
   async messageDetail (_id: string) {
     const db = this.app.mongo;
-    const data = await db.findOne('api_businessmessage', { query: { _id: new ObjectID(_id) } });
+    const data = await db.findOneAndUpdate('api_businessmessage', { filter: {_id: new ObjectID(_id) }, update: { $set: { read: "1" } } });
     return data;
   }
 }

@@ -4,7 +4,8 @@ export default class HomeController extends Controller {
   public async index () {
     const { ctx } = this;
     // ctx.body = await ctx.service.test.sayHi('egg');
-    ctx.body = await ctx.service.agent.login('14101322457');
+    const phone: string = ctx.query.phone;
+    ctx.body = await ctx.service.agent.login(phone);
     // ctx.body = { a: 123456 };
   }
   public async login () {
@@ -38,7 +39,8 @@ export default class HomeController extends Controller {
     switch (restful) {
       case 'GET':
         _id = ctx.query;
-        ctx.body = await ctx.service.agent.getBuiness(_id);
+        const len: any = ctx.query.len;
+        ctx.body = await ctx.service.agent.getBuiness(_id, len);
         break;
       case 'PUT':
         _id = ctx.request.body._id;
@@ -61,8 +63,8 @@ export default class HomeController extends Controller {
   }
   public async getStatus () {
     const { ctx } = this;
-    const id = ctx.query.id;
-    ctx.body = { status: await ctx.service.agent.getStatus(id) };
+    const _id = ctx.query._id;
+    ctx.body = await ctx.service.agent.getStatus(_id);
   }
   public async getChain () {
     const { ctx } = this;
