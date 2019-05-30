@@ -17,7 +17,9 @@ export default (app: Application) => {
   router.get('/get_status', controller.agnet.getStatus);
   router.get('/person_info', controller.agnet.person);
   router.put('/person_info', controller.agnet.person);
+  router.put('/update_card', controller.agnet.card);
   // 消息相关
   router.get('/message', controller.agnet.message);
   router.get('/message/:_id', controller.agnet.message);
+  router.post('/upload', controller.agnet.file)
 };

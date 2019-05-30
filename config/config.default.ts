@@ -46,6 +46,13 @@ export default (appInfo: EggAppInfo) => {
   // };
   // add your config here
   config.middleware = [];
+  // 文件上传
+  config.multipart = {
+    fileSize: '100mb',
+    fileExtensions: [
+      '.webm',
+    ],
+  }
   config.security = {
     csrf: {
       enable: false,

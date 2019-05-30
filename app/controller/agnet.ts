@@ -1,4 +1,6 @@
 import { Controller } from 'egg';
+const fs = require('fs');
+const path = require('path');
 
 export default class HomeController extends Controller {
   public async index () {
@@ -19,18 +21,23 @@ export default class HomeController extends Controller {
     const restful = ctx.method;
     switch (restful) {
       case 'GET':
-        _id = ctx.query.id;
+        _id = ctx.query._id;
         const key: string = ctx.query.key;
         ctx.body = await ctx.service.agent.getPerson(_id, key);
         break;
       case 'PUT':
         _id = ctx.request.body._id;
-        const data: object = ctx.request.body.data;
+        const data: object = ctx.request.body;
         ctx.body = await ctx.service.agent.setPerson(_id, data);
         break;
       default:
         break;
     }
+  }
+  public async card () {
+    const { ctx } = this;
+    const data = ctx.request.body;
+    ctx.body = await ctx.service.agent.setCard(data);
   }
   public async Business () {
     const { ctx } = this;
@@ -79,6 +86,25 @@ export default class HomeController extends Controller {
     } else {
       const { page, pageSize } = ctx.query;
       ctx.body = await ctx.service.agent.messageList(page, pageSize);
+    }
+  }
+  public async file () {
+    const { ctx } = this;
+    const stream = await ctx.getFileStream();
+    if (stream) {
+      const fileName = stream.filename;
+      const baseDir = '/www/ts-egg/app/public/uploadFile';
+      const target = path.join(baseDir, fileName)
+      const writeStream = fs.createWriteStream(target)
+      const a = await stream.pipe(writeStream);
+      const formData = stream.fields;
+      if (formData.target === 'video') {
+        ctx.body = await ctx.service.agent.personAuth(a.path, formData._id);
+      } else {
+        ctx.body = { code: 200, path: a.path || 'null' }
+      }
+    } else {
+      ctx.body = {code: 500, message: '未获取到文件'}
     }
   }
 }
