@@ -3,7 +3,10 @@ import { ObjectID } from 'mongodb';
 import $utils from '../utils';
 
 export default class Agent extends Service {
-  // 判断账号是否存在，存在返回验证码，不存在抛出异常
+  /*
+   判断账号是否存在，存在返回验证码，不存在抛出异常 （账号是否存在 平台经办人）
+   @params phone: string  手机号码
+  */
   async login (phone: string) {
     const db: any = this.app.mongo;
     const redis: any = this.app.redis;
@@ -27,7 +30,12 @@ export default class Agent extends Service {
       return { code: 400, message: '用户不存在' };
     }
   }
-  // 从 redis 验证验证码
+  /*
+   从 redis 验证验证码 （验证登陆）
+   @params
+   phone: string  手机号码
+   code: string    手机验证码
+  */
   async testCode (phone: string, code: string) {
     const db: any = this.app.mongo;
     const redis: any = this.app.redis;
@@ -41,21 +49,37 @@ export default class Agent extends Service {
       return { code: 400, data: null, message: '验证码无效' };
     }
   }
-  // 获取当前关联企业
+  /*
+   获取当前关联企业
+   @params
+   _id: string  经办人uid 相当于token
+   len: any    可不传  page_size
+  */
   async getBuiness (_id: string, len: any) {
     const db: any = this.app.mongo;
     const l = Number(len) || 8;
-    const data = await db.find('api_business', { limit: l, projection: { _id: 1, id: 1, name: 1, face: 1 } });
+    const data = await db.find('api_business', { limit: l, projection: { _id: 1, id: 1, name: 1, legal_person_change_id: 1 } });
     return { data, code: 200 };
   }
-  // 修改当前企业状态
+  /*
+   修改当前企业状态   （更改授权）
+   @params
+   _id: string  经办人uid 相当于token
+   len: sw    可不传  手否授权
+  */
   async setBusiness (_id: string, sw: any) {
     const db: any = this.app.mongo;
     // const data = db.find('api_business', { query: { id } });
     const data = await db.findOneAndUpdate('api_business', { filter: { _id: new ObjectID(_id) }, update: { $set: { legal_person_change_id: sw ? '1' : null } } }, { returnNewDocument: true });
     return data;
   }
-  // 合同列表
+  /*
+   经办人参与合同列表
+   @params
+   _id: string  经办人uid 相当于token
+   type: string    是否确认
+   contractType: string 合同类型
+  */
   async contractList (id: string, type: string, contractType: string) {
     interface Query {
       business_id: string;
@@ -85,12 +109,21 @@ export default class Agent extends Service {
     }) : [];
     return list;
   }
-  // 合同详情
-  async contractDetail (id: string) {
+  /*
+   合同详情
+   @params
+   _id: string  合同_id
+  */
+  async contractDetail (_id: string) {
     const db: any = this.app.mongo;
-    const data = await db.findOne('api_contract', { query: { _id: new ObjectID(id) } });
+    const data = await db.findOne('api_contract', { query: { _id: new ObjectID(_id) } });
     return data;
   }
+  /*
+   根据合同_id 获取记账详情
+   @params
+   _id: string  合同_id
+  */
   // 获取记账相关信息
   async chain (id: string) {
     const db: any = this.app.mongo;
@@ -121,22 +154,33 @@ export default class Agent extends Service {
     }
     return { detail, id };
   }
-  // 获取当前审核状态
+  /*
+   根据合同_id 获取当前审核状态
+   @params
+   _id: string  合同_id
+  */
   async getStatus (_id: string) {
+    console.log(_id);
     const db = this.ctx.app.mongo;
-    const data = await db.findOne('chain_ledger_agentinfo', { query: { _id: new ObjectID(_id) } });
-    if (data.verified_LegalPerson !== '0') {
+    const data = await db.findOne('chain_ledger_agentinfo', { query: { _id } });
+    if (data.face) {
       return { status: '3', name: data.name };
-    } else if (data.data.legal_perso && data.legal_person1) {
+    } else if (data.legal_perso && data.legal_perso1) {
       return { status: '2', name: data.name, company: data.company };
     } else {
       return { status: '1', name: data.name, company: data.company };
     }
   }
-  // 用户基本信息
+  /*
+   获取当前经办人相关信息
+   @params
+   _id: string  经办人_id
+   key: 开关   1 为基本信息   2为身份证信息     3位人脸识别审核信息
+  */
   async getPerson (_id: string, key: string) {
     const db = this.ctx.app.mongo;
-    const data = await db.findOne('chain_ledger_agentinfo', { query: { _id: new ObjectID(_id) } });
+    const data = await db.findOne('chain_ledger_agentinfo', { query: { _id } });
+    console.log(data);
     if (key === '1') {
       interface Person {
         _id: string;
@@ -147,6 +191,7 @@ export default class Agent extends Service {
         role: any;
         email: any;
         office_phone: any;
+        company: any;
         wechat: any;
         qq: any;
       }
@@ -154,13 +199,14 @@ export default class Agent extends Service {
         _id: data._id,
         id: data.id,
         name: data.name,
-        card_id: data.legal_person_card_id,
+        card_id: data.iDnumber,
         phone: data.phone,
         role: '操作员',
+        company: data.company,
         email: data.email,
-        office_phone: data.office_phone || null,
-        wechat: data.wechat || null,
-        qq: data.qq || null,
+        office_phone: data.officePhone || null,
+        wechat: data.weCaht || null,
+        qq: data.QQ || null,
       };
       return { code: 200, person };
     } else if (key === '2') {
@@ -170,64 +216,84 @@ export default class Agent extends Service {
       }
       const card: CardPic = {
         id_card_front: data.legal_perso,
-        id_card_back: data.legal_person1,
+        id_card_back: data.legal_perso1,
       };
       return { code: 200, card };
     } else if (key === '3') {
-      return { state: data.verified_LegalPerson };
+      return { state: data.face };
     } else {
       return { data, code: 200 };
     }
   }
-  // 设置用户基本信息
+  /*
+   设置用户基本信息
+   @params
+   _id: string  经办人_id
+   data: 修改信息
+  */
   async setPerson (_id: string, data: any) {
     const db: any = this.app.mongo;
     interface PersonInfo {
       email: any;
-      office_phone: any;
-      wechat: any;
-      qq: any;
+      officePhone: any;
+      weChat: any;
+      QQ: any;
+      role: any;
     }
     const info: PersonInfo = {
       email: data.email,
-      office_phone: data.office_phone,
-      wechat: data.wechat,
-      qq: data.qq,
+      officePhone: data.office_phone,
+      weChat: data.wechat,
+      QQ: data.qq,
+      role: '经办人',
     };
-    const res = await db.findOneAndUpdate('chain_ledger_agentinfo', { filter: { _id: new ObjectID(_id) }, update: { $set: { ...info } } });
+    const res = await db.findOneAndUpdate('chain_ledger_agentinfo', { filter: { _id }, update: { $set: { ...info } } });
     if (res) {
       return { code: 200, message: null };
     } else {
       return { code: 400, message: '更新失败' };
     }
   }
-  // 修改证件信息
+  /*
+   修改证件信息
+   @params
+   data: 证件照上传图片后返回的 id
+  */
   async setCard (data: any) {
     const db: any = this.app.mongo;
     interface Card {
       legal_perso: string;
-      legal_person1: string;
+      legal_perso1: string;
     }
     const card: Card = {
       legal_perso: data.id_card_front,
-      legal_person1: data.id_card_back,
+      legal_perso1: data.id_card_back,
     };
-    const res = await db.findOneAndUpdate('chain_ledger_agentinfo', { filter: { _id: new ObjectID(data._id) }, update: { $set: { ...card } } });
+    const res = await db.findOneAndUpdate('chain_ledger_agentinfo', { filter: { _id: data._id }, update: { $set: { ...card } } });
     if (res.ok) {
       return { code: 200 };
     }
   }
-  // 修改认证信息
+  /*
+   修改人脸识别认证信息
+   @params
+   data: face 上传人脸识别信息后返回信息
+  */
   async personAuth (face: string, _id: string) {
     const db: any = this.app.mongo;
-    const res = await db.findOneAndUpdate('chain_ledger_agentinfo', { filter: { _id: new ObjectID(_id) }, update: { $set: { face } } });
+    const res = await db.findOneAndUpdate('chain_ledger_agentinfo', { filter: { _id }, update: { $set: { face } } });
     if (res.ok) {
       return { code: 200, value: res.value };
     } else {
       return { code: 500, message: res };
     }
   }
-  // 消息列表
+  /*
+   消息列表
+   @params
+   page: 页码
+   pageSize： 页长度
+  */
   async messageList (page: any, pageSize: any) {
     const db = this.app.mongo;
     const limit: number = Number(pageSize || '10');
@@ -237,6 +303,11 @@ export default class Agent extends Service {
     const d = data.map(val => ({ ...val, date: val.post_time.replace(/\//g, '-') }));
     return { data: d, code: 200 };
   }
+  /*
+   消息列表
+   @params
+   _id: 消息id
+  */
   async messageDetail (_id: string) {
     const db = this.app.mongo;
     const data = await db.findOneAndUpdate('api_businessmessage', { filter: { _id: new ObjectID(_id) }, update: { $set: { read: '1' } } });

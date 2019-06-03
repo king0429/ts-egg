@@ -52,7 +52,7 @@ export default (appInfo: EggAppInfo) => {
     fileExtensions: [
       '.webm',
     ],
-  }
+  };
   config.security = {
     csrf: {
       enable: false,

@@ -1,3 +1,7 @@
+// tslint:disable-next-line:no-var-requires
+const uuid: any = require('uuid/v4');
+// tslint:disable-next-line:no-var-requires
+const md5 = require('md5');
 const $utils: any = {};
 $utils.getCode = (len: number = 4) => {
   let str: string = '';
@@ -6,5 +10,10 @@ $utils.getCode = (len: number = 4) => {
   }
   return str;
 };
+
+$utils.uid = () => {
+  return uuid();
+};
+$utils.md5 = (str: string) => md5(str);
 
 export default $utils;

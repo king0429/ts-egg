@@ -1,5 +1,7 @@
 import { Controller } from 'egg';
+// tslint:disable-next-line:no-var-requires
 const fs = require('fs');
+// tslint:disable-next-line:no-var-requires
 const path = require('path');
 
 export default class HomeController extends Controller {
@@ -52,6 +54,7 @@ export default class HomeController extends Controller {
       case 'PUT':
         _id = ctx.request.body._id;
         key = ctx.request.body.key;
+        console.log(_id, key);
         ctx.body = await ctx.service.agent.setBusiness(_id, key);
         break;
       default:
@@ -94,17 +97,17 @@ export default class HomeController extends Controller {
     if (stream) {
       const fileName = stream.filename;
       const baseDir = '/www/ts-egg/app/public/uploadFile';
-      const target = path.join(baseDir, fileName)
-      const writeStream = fs.createWriteStream(target)
+      const target = path.join(baseDir, fileName);
+      const writeStream = fs.createWriteStream(target);
       const a = await stream.pipe(writeStream);
       const formData = stream.fields;
       if (formData.target === 'video') {
         ctx.body = await ctx.service.agent.personAuth(a.path, formData._id);
       } else {
-        ctx.body = { code: 200, path: a.path || 'null' }
+        ctx.body = { code: 200, path: a.path || 'null' };
       }
     } else {
-      ctx.body = {code: 500, message: '未获取到文件'}
+      ctx.body = { code: 500, message: '未获取到文件' };
     }
   }
 }

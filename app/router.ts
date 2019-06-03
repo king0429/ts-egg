@@ -21,5 +21,11 @@ export default (app: Application) => {
   // 消息相关
   router.get('/message', controller.agnet.message);
   router.get('/message/:_id', controller.agnet.message);
-  router.post('/upload', controller.agnet.file)
+  router.post('/upload', controller.agnet.file);
+  /*
+    信贷员接口
+  */
+  router.get('/banker/get_code', controller.banker.index);
+  router.post('/banker/register', controller.banker.register);
+  router.post('/banker/login', controller.banker.login);
 };
