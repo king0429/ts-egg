@@ -25,7 +25,14 @@ export default (app: Application) => {
   /*
     信贷员接口
   */
+  router.get('/banker', controller.banker.index);
   router.get('/banker/get_code', controller.banker.getCode);
   router.post('/banker/register', controller.banker.register);
   router.post('/banker/login', controller.banker.login);
+  // 获取企业列表
+  router.get('/banker/business', controller.banker.AllBusiness);
+  router.put('/banker/business', controller.banker.AllBusiness);
+  router.get('/banker/business/:id', controller.banker.AllBusiness);
+  // 信贷员 我的收藏
+  router.get('/banker/collection', controller.banker.collection);
 };

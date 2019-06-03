@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>bank API 接口文档</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .dash_board {
+      /* width: 80%; */
+      padding: 30px;
+      /* background:linear-gradient(to top left, #38adff, #fafafa); */
+      background: #38adff;
+      /* margin-top: 30px; */
+      border: 1px solid #38adff;
+      box-shadow: -4px 8px 20px -1px #38adff;
+      color: #fff;
+      margin: 0 auto;
+    }
+    .dash_board p {
+      margin: 20px 0;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+    .dash_board span:first-child {
+      width: 240px;
+      /* font-weight: bold; */
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="dash_board">
+    <p>
+      <span>Name</span>
+      <span>Banker</span>
+    </p>
+    <p>
+      <span>Server</span>
+      <span>Egg.js</span>
+    </p>
+    <p>
+      <span>Database</span>
+      <span>mongodb://127.0.0.1:27017</span>
+    </p>
+    <p>
+      <span>Section</span>
+      <span>redis://127.0.0.1:6379</span>
+    </p>
+  </div>
+  <ul>
+    <%for (let i = 0; i <= list.length - 1; i++) {%>
+      <p>
+          <span>接口名称:</span>
+          <span><%=list[i].name%></span>
+        </p>
+      <p>
+        <span>接口id:</span>
+        <span><%=list[i].id%></span>
+      </p>
+      <code>
+        
+      </code>
+    <%}%>
+    </ul>
+  <script>
+
+  </script>
+</body>
+</html>
