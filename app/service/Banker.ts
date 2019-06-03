@@ -18,22 +18,26 @@ export default class Agent extends Service {
     */
     const db: any = this.app.mongo;
     const redis: any = this.app.redis;
-    const hasPhone = await db.findOne('api_banker', { query: { phone } });
-    if (hasPhone) {
-      const codeList: any = await redis.lrange('banker_phone_code', '0', -1);
-      const codes: any = codeList.map((val: any) => JSON.parse(val));
-      const curCode: any = codes.filter((val: any) => val.phone === phone);
-      // 查找redis 是否有验证码
-      if (curCode.length === 0) {
-        const showCode = $utils.getCode();
-        const a: any = await redis.lpush('banker_phone_code', JSON.stringify({ update_time: new Date().getTime(), phone, code: showCode }));
-        // return { code: 200, data: { update_time: new Date().getTime(), phone, code: showCode } };
-        return a;
+    if (phone) {
+      const hasPhone = await db.findOne('api_banker', { query: { phone } });
+      if (!hasPhone) {
+        const codeList: any = await redis.lrange('banker_phone_code', '0', -1);
+        const codes: any = codeList.map((val: any) => JSON.parse(val));
+        const curCode: any = codes.filter((val: any) => val.phone === phone);
+        // 查找redis 是否有验证码
+        if (curCode.length === 0) {
+          const showCode = $utils.getCode();
+          const a: any = await redis.lpush('banker_phone_code', JSON.stringify({ update_time: new Date().getTime(), phone, code: showCode }));
+          // return { code: 200, data: { update_time: new Date().getTime(), phone, code: showCode } };
+          return a;
+        } else {
+          return { code: 200, data: curCode[0] };
+        }
       } else {
-        return { code: 200, data: curCode[0] };
+        return { code: 500, message: '账号已存在', data: null };
       }
     } else {
-      return { code: 500, message: '账号已存在', data: null };
+      return { code: 505, message: '无法获取参数：phone' };
     }
   }
   /*
@@ -49,7 +53,8 @@ export default class Agent extends Service {
     { code: 303, message: '验证码过期或失效' }
     { message: '账号已存在，请前往登录', code: 301 }
   */
-  async register (data: { phone: string, password: string, code: string }) {
+//  { phone: string, password: string, code: string }
+  async register (data: any) {
     const db: any = this.app.mongo;
     const redis: any = this.app.redis;
     const hasPhone = await db.findOne('api_banker', { query: { phone: data.phone } });
@@ -57,6 +62,7 @@ export default class Agent extends Service {
       const codeList: any = await redis.lrange('banker_phone_code', '0', -1);
       const codes: any = codeList.map((val: any) => JSON.parse(val));
       const curCode: any = codes.filter((val: any) => val.phone === data.phone);
+      console.log(curCode);
       if (curCode[0]) {
           if (curCode[0].code === data.code) {
             interface Account {
@@ -76,7 +82,7 @@ export default class Agent extends Service {
               uid: $utils.uid(),
               phone: data.phone, password: $utils.md5(data.password), register_time: new Date().getTime(),
             };
-            const res = await db.insertOne('api_banker', banker);
+            const res = await db.insertOne('api_banker', { doc: banker });
             if (res) {
               return { code: 200, message: '注册成功，请前往登录' };
             } else {
@@ -109,9 +115,10 @@ export default class Agent extends Service {
     const account = await db.findOne('api_banker', { quary: { phone: data.phone } });
     if (account) {
       if (account.password === $utils.md5(data.password)) {
-        const token = $utils.uuid();
-        const res = await db.insertOne('api_banker_token', { uid: account.uid, token, update_time: new Date().getTime() });
-        if (res.ok) {
+        const token = $utils.uid();
+        const res = await db.insertOne('api_banker_token', { doc: { uid: account.uid, token, update_time: new Date().getTime() } });
+        console.log(res);
+        if (res.result.ok) {
           return { uid: account.uid, token, code: 200 };
         } else {
           return { code: 500, message: res };

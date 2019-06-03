@@ -25,7 +25,7 @@ export default (app: Application) => {
   /*
     信贷员接口
   */
-  router.get('/banker/get_code', controller.banker.index);
+  router.get('/banker/get_code', controller.banker.getCode);
   router.post('/banker/register', controller.banker.register);
   router.post('/banker/login', controller.banker.login);
 };

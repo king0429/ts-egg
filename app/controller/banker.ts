@@ -9,11 +9,12 @@ export default class Banker extends Controller {
     this.ctx.body = await this.service.banker.getCode(phone);
   }
   async register () {
-    const data: { phone: string; password: string; code: string; } = this.ctx.request.body;
+    const data: any = this.ctx.request.body;
+    console.log(data);
     this.ctx.body = await this.ctx.service.banker.register(data);
   }
   async login () {
     const data: { phone: string; password: string } = this.ctx.request.body;
-    this.ctx.body = await this.ctx.service.login(data);
+    this.ctx.body = await this.ctx.service.banker.login(data);
   }
 }
