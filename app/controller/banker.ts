@@ -41,6 +41,10 @@ export default class Banker extends Controller {
       ctx.body = await ctx.service.banker.Business('get', id, ctx.query.token, 0);
     }
   }
+  async businessList () {
+    const query = this.ctx.query;
+    this.ctx.body = this.ctx.service.banker.BusinessList(query);
+  }
   async collection () {
     const ctx = this.ctx;
     const id = ctx.params.business_id;
@@ -56,5 +60,9 @@ export default class Banker extends Controller {
     } else {
       console.log(id);
     }
+  }
+  async financingList () {
+    const ctx = this.ctx;
+    ctx.body = await ctx.service.banker.FinancingList(ctx.query.token, ctx.query.page, ctx.query.pageSize);
   }
 }

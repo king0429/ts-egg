@@ -249,4 +249,55 @@ export default class Agent extends Service {
       return { code: 403, message: 'token错误' };
     }
   }
+  async FinancingList (token: string, page: string, pageSize: string): Promise<any> {
+    const db = this.app.mongo;
+    const uid = await Auth({ token }, db);
+    if (uid) {
+      const p = Number(page) ? Number(page) : 1;
+      const ps = Number(pageSize) ? Number(pageSize) : 10;
+      const list = db.find('api_orderfinancingapplication', { limit: ps, skip: (p - 1) * ps });
+      return { code: 200, list };
+    } else {
+      return { code: 403, message: 'token错误' };
+    }
+  }
+  async FinancingDeatil (token: string, _id: any, target: string, info: any): Promise<any> {
+    const db = this.app.mongo;
+    const uid = await Auth({ token }, db);
+    const table = 'api_orderfinancingapplication';
+    // const restFul = this.ctx.method;
+    if (uid) {
+      if (target === 'GET') {
+        const detail = await db.findOne(table, { query: { _id } });
+        return { code: 200, detail };
+      } else if (target === 'PUT') {
+        const change = await db.findOneAndUpdate(table, { filter: { _id }, update: { $set: { setp: '2' } } });
+        if (change.result.ok) {
+          return { code: 200, message: '修改成功' };
+        } else {
+          return { code: 501, message: '修改失败' };
+        }
+      } else if (target === 'POST') {
+        const res = await db.insertOne(table, { doc: info });
+        if (res.result.ok) {
+          return { code: 200, message: '添加成功' };
+        } else {
+          return { code: 501, message: '添加失败' };
+        }
+      }
+    } else {
+      return { code: 403, message: 'token错误' };
+    }
+  }
+  // 获客列表
+  async BusinessList (info: object) {
+    // interface Query {
+    //   page: number;
+    //   pageSize: number;
+    //   dist?: string;
+    //   trade?: string;
+    //   year?: number;
+    //   money?: number;
+    // }
+  }
 }
