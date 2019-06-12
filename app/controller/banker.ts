@@ -93,4 +93,13 @@ export default class Banker extends Controller {
       ctx.body = await ctx.service.banker.UpdateAccount(ctx.request.body, ctx.request.body.phone);
      }
   }
+  async forget () {
+    const ctx = this.ctx;
+    const restful = ctx.method;
+    if (restful === 'GET') {
+      ctx.body = await ctx.service.banker.innerCode(ctx.query.phone);
+    } else if (restful === 'PUT') {
+      ctx.body = await ctx.service.banker.changePassword(ctx.request.body);
+    }
+  }
 }

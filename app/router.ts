@@ -43,4 +43,6 @@ export default (app: Application) => {
   router.post('/banker/change_password', controller.banker.password);
   router.get('/banker/account', controller.banker.account);
   router.put('/banker/account', controller.banker.account);
+  router.get('/banker/forget', controller.banker.forget);
+  router.put('/banker/forget', controller.banker.forget);
 };
