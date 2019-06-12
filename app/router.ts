@@ -30,9 +30,17 @@ export default (app: Application) => {
   router.post('/banker/register', controller.banker.register);
   router.post('/banker/login', controller.banker.login);
   // 获取企业列表
-  router.get('/banker/business', controller.banker.AllBusiness);
+  router.get('/banker/business', controller.banker.businessList);
   router.put('/banker/business', controller.banker.AllBusiness);
   router.get('/banker/business/:id', controller.banker.AllBusiness);
   // 信贷员 我的收藏
   router.get('/banker/collection', controller.banker.collection);
+  // 搜索企业
+  router.post('/banker/search', controller.banker.Search);
+  // 站内信
+  router.get('/banker/message', controller.banker.messageList);
+  router.get('/banker/message/:id', controller.banker.messageList);
+  router.post('/banker/change_password', controller.banker.password);
+  router.get('/banker/account', controller.banker.account);
+  router.put('/banker/account', controller.banker.account);
 };

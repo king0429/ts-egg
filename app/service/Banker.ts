@@ -290,14 +290,67 @@ export default class Agent extends Service {
     }
   }
   // 获客列表
-  async BusinessList (info: object) {
-    // interface Query {
-    //   page: number;
-    //   pageSize: number;
-    //   dist?: string;
-    //   trade?: string;
-    //   year?: number;
-    //   money?: number;
-    // }
+  async BusinessList (page: string, pageSize: string) {
+    const db = this.app.mongo;
+    const ps = Number(pageSize) ? Number(pageSize) : 10;
+    const p = Number(page) ? Number(page) : 1;
+    const list = await db.find('api_businessdetail', { limit:  ps, skip: (p - 1) * ps });
+    const total = await db.count('api_business');
+    return { code: 200, list, total };
+  }
+  async Search (key: string, type: string) {
+    const db = this.app.mongo;
+    // const uid = await Auth({ token }, db);
+    if (type === 'business') {
+      const keyword = new RegExp(key);
+      const res = await db.find('api_business', { query: { name: keyword }, project: { name: 1, id: 1, detail_id: 1, ninstar_approved: 1 } });
+      if (res) {
+        return res;
+      } else {
+        return { code: 500, message: '数据错误' };
+      }
+    }
+  }
+  async Message (page: any, pageSize: any, id: any) {
+    const db = this.app.mongo;
+    if (!id) {
+      const p = Number(page) ? Number(page) : 1;
+      const ps = Number(pageSize) ? Number(pageSize) : 10;
+      const list = await db.find('api_institutionmessage', { limit: ps, skip: (p - 1) * ps, project: { title: 1, post_time: 1, read: 1 } });
+      return { code: 200, list };
+    } else {
+      const detail = await db.findOneAndUpdate('api_institutionmessage', { filter: { _id: new ObjectID(id) }, update: { $set: { read: '1' } } });
+      if (detail.ok) {
+        return { code: 200, detail };
+      } else {
+        return { code: 500, message: '请联系管理员' };
+      }
+    }
+  }
+  async Password (oldOne: string, newOne: string) {
+    if (oldOne && newOne) {
+      return { code: 200, message: '修改成功' };
+    } else {
+      return { code: 500, message: '修改失败' };
+    }
+  }
+  async Account (account: string) {
+    const db = this.app.mongo;
+    const detail = await db.findOne('api_legalperson', { query: { phone: account } });
+    if (detail) {
+      return { code: 200, detail };
+    } else {
+      return { code: 500, message: '账号信息错误' };
+    }
+  }
+  async UpdateAccount (data: object, phone: string) {
+    const db = this.app.mongo;
+    const _id = await db.findOne('api_banker', { query: { phone }, project: { uid: 1 } });
+    if (_id) {
+      const res = await db.findOneAndUpdate('api_banker_account', { filter: { uid: _id }, update: { $set: { data } } });
+      return { code: 200, detail: res, message: '修改成功' };
+    } else {
+      return { code: 502, message: '账号不存在' };
+    }
   }
 }

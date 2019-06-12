@@ -43,7 +43,8 @@ export default class Banker extends Controller {
   }
   async businessList () {
     const query = this.ctx.query;
-    this.ctx.body = this.ctx.service.banker.BusinessList(query);
+    this.ctx.body = await this.ctx.service.banker.BusinessList(query.page, query.pageSize);
+    // this.ctx.body = { query, code: 200 };
   }
   async collection () {
     const ctx = this.ctx;
@@ -64,5 +65,32 @@ export default class Banker extends Controller {
   async financingList () {
     const ctx = this.ctx;
     ctx.body = await ctx.service.banker.FinancingList(ctx.query.token, ctx.query.page, ctx.query.pageSize);
+  }
+  async Search () {
+    const ctx = this.ctx;
+    // console.log(ctx.request.body.key);
+    ctx.body = await ctx.service.banker.Search(ctx.request.body.key, 'business');
+  }
+  async messageList () {
+    const ctx = this.ctx;
+    const id = ctx.params.id;
+    const { page, pageSize } = ctx.query;
+    ctx.body = await ctx.service.banker.Message(page, pageSize, id);
+  }
+  async password () {
+    const ctx = this.ctx;
+    ctx.body = await ctx.service.banker.Password(ctx.request.body.pwd, ctx.request.body.newPwd);
+  }
+  async account () {
+    const ctx = this.ctx;
+    const restful = ctx.method;
+    if (restful === 'GET') {
+      // 获取个人信息
+      ctx.body = await ctx.service.banker.Account(ctx.query.account);
+    } else if (restful === 'PUT') {
+      // 修改个人信息
+      console.log(ctx.request.body.phone);
+      ctx.body = await ctx.service.banker.UpdateAccount(ctx.request.body, ctx.request.body.phone);
+     }
   }
 }
