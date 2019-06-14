@@ -94,6 +94,7 @@ export default class Agent extends Service {
               nick: string;
               bank: string;
               branch: string;
+              location: any;
             }
             const banker: Account = {
               uid: $utils.uid(),
@@ -105,6 +106,7 @@ export default class Agent extends Service {
               nick: data.nick,
               bank: data.bank,
               branch: data.branch,
+              location: data.localtion,
             };
             const res = await db.insertOne('api_banker', { doc: banker });
             if (res) {

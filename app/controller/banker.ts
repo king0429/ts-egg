@@ -1,4 +1,8 @@
 import { Controller } from 'egg';
+// tslint:disable-next-line:no-var-requires
+const path = require('path');
+// tslint:disable-next-line:no-var-requires
+const fs = require('fs');
 
 export default class Banker extends Controller {
   async index () {
@@ -100,6 +104,32 @@ export default class Banker extends Controller {
       ctx.body = await ctx.service.banker.innerCode(ctx.query.phone);
     } else if (restful === 'PUT') {
       ctx.body = await ctx.service.banker.changePassword(ctx.request.body);
+    }
+  }
+  async upload () {
+    const { ctx } = this;
+    const stream = await ctx.getFileStream();
+    const db = ctx.app.mongo;
+    if (stream) {
+      const fileName = stream.filename;
+      const baseDir = '/www/ts-egg/app/public/uploadFile';
+      const target = path.join(baseDir, fileName);
+      const writeStream = fs.createWriteStream(target);
+      const a = await stream.pipe(writeStream);
+      const formData = stream.fields;
+      // if (formData.phone === 'video') {
+      //   ctx.body = await ctx.service.agent.personAuth(a.path, formData._id);
+      // } else {
+      //   ctx.body = { code: 200, path: a.path || 'null' };
+      // }
+      const res = await db.findOneAndUpdate('api_banker', { filter: { phone: formData.phone }, update: { $set: { avatar: a.path } } });
+      if (res.value) {
+        ctx.body = { code: 200, path: a.path, message: '修改成功' };
+      } else {
+        ctx.body = { code: 500, message: '修改失败' };
+      }
+    } else {
+      ctx.body = { code: 500, message: '未获取到文件' };
     }
   }
 }
