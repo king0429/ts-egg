@@ -132,4 +132,10 @@ export default class Banker extends Controller {
       ctx.body = { code: 500, message: '未获取到文件' };
     }
   }
+  async friends () {
+    const ctx = this.ctx;
+    if (ctx.params.id) {} else {
+      ctx.body = await ctx.service.banker.getFriends(ctx.query.phone, ctx.query.page);
+    }
+  }
 }

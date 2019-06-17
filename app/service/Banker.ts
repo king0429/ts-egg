@@ -381,7 +381,7 @@ export default class Agent extends Service {
     // const uid = await Auth({ token }, db);
     if (type === 'business') {
       const keyword = new RegExp(key);
-      const res = await db.find('api_business', { query: { name: keyword }, project: { name: 1, id: 1, detail_id: 1, ninstar_approved: 1 } });
+      const res = await db.find('api_businessdetail', { query: { name: keyword } });
       if (res) {
         return res;
       } else {
@@ -430,5 +430,44 @@ export default class Agent extends Service {
     } else {
       return { code: 502, message: '账号不存在' };
     }
+  }
+  async getFriends (phone: string, page: string) {
+    const p = Number(page) ? Number(page) : 1;
+    const db = this.app.mongo;
+    const args = {
+      pipeline: [
+        {
+          $lookup: {
+            from: 'api_business',
+            localField: 'friend_accountid_id',
+            foreignField: 'id',
+            as: 'business',
+          },
+        },
+        {
+          $match: {
+            belong_to_accountid_id: '47',
+          },
+        },
+        {
+          $project: {
+            'business.name': 1,
+            'business.id': 1,
+            id: 1,
+            add_time: 1,
+          },
+        },
+        {
+          $limit: 30,
+        },
+      ],
+    };
+    const res = await db.aggregate('api_friends', args);
+    const list = res.map(val => {
+      if (val.business.length > 0) {
+        return { ...val, name: val.business[0].name, business_id: val.business[0].id };
+      }
+    }).filter(val => val);
+    return { code: 200, phone, list, p };
   }
 }

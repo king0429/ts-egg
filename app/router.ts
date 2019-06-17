@@ -46,4 +46,5 @@ export default (app: Application) => {
   router.get('/banker/forget', controller.banker.forget);
   router.put('/banker/forget', controller.banker.forget);
   router.post('/banker/upload', controller.banker.upload);
+  router.get('/banker/friends', controller.banker.friends);
 };
