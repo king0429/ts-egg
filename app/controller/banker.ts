@@ -134,8 +134,14 @@ export default class Banker extends Controller {
   }
   async friends () {
     const ctx = this.ctx;
-    if (ctx.params.id) {} else {
-      ctx.body = await ctx.service.banker.getFriends(ctx.query.phone, ctx.query.page);
-    }
+    ctx.body = await ctx.service.banker.getFriends(ctx.query.phone, ctx.query.page);
+  }
+  async friendApplication () {
+    const ctx = this.ctx;
+    ctx.body = await ctx.service.banker.friendsApplication();
+  }
+  async cfca () {
+    const id = this.ctx.query.id;
+    this.ctx.body = await this.ctx.service.banker.cfca(id);
   }
 }

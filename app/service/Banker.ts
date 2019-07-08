@@ -467,7 +467,60 @@ export default class Agent extends Service {
       if (val.business.length > 0) {
         return { ...val, name: val.business[0].name, business_id: val.business[0].id };
       }
-    }).filter(val => val);
+    }).filter((val: any) => val);
     return { code: 200, phone, list, p };
+  }
+  async friendsApplication () {
+    const db = this.app.mongo;
+    const args = {
+      pipeline: [
+        {
+          $lookup: {
+            from: 'api_business',
+            localField: 'friend_accountid_id',
+            foreignField: 'id',
+            as: 'business',
+          },
+        },
+        {
+          $match: {
+            belong_to_accountid_id: '5',
+          },
+        },
+        {
+          $project: {
+            'business.name': 1,
+            'business.id': 1,
+            id: 1,
+            add_time: 1,
+          },
+        },
+        {
+          $limit: 30,
+        },
+      ],
+    };
+    const res = await db.aggregate('api_friends', args);
+    const list = res.map((val: any) => {
+      if (val.business.length > 0) {
+        return { ...val, name: val.business[0].name, business_id: val.business[0].id };
+      }
+    }).filter((val: any) => val);
+    return { code: 200, list };
+  }
+  async cfca (id: string) {
+    if (id) {
+      const i: string = id || '10100000188';
+      const res = await this.ctx.curl(`http://39.108.230.246/api/company/${i}/`, {
+        headers: {
+          'Auth-Token': '97babf3af206c22dff0ae9dceae4dfa8ad013cf2',
+        },
+        contentType: 'json',
+        dataType: 'json',
+      });
+      return { code: 200, data: res.data.cfca_info };
+    } else {
+      return { code: 500 };
+    }
   }
 }
