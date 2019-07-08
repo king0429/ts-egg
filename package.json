@@ -30,11 +30,14 @@
     "egg-mysql": "^3.0.0",
     "egg-redis": "^2.3.2",
     "egg-scripts": "^2.6.0",
+    "egg-sequelize": "^5.1.0",
     "egg-session-redis": "^2.1.0",
     "egg-view": "^2.1.2",
     "egg-view-ejs": "^2.0.0",
     "md5": "^2.2.1",
-    "uuid": "^3.3.2"
+    "mysql2": "^1.6.5",
+    "uuid": "^3.3.2",
+    "xlsx2json": "^1.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.40",

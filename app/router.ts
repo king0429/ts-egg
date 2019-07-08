@@ -49,4 +49,7 @@ export default (app: Application) => {
   router.get('/banker/friends', controller.banker.friends);
   router.get('/banker/friends_application', controller.banker.friendApplication);
   router.get('/banker/cfca_data', controller.banker.cfca);
+  // 数据分析
+  router.get('/data_data', controller.table.index);
+  router.get('/table', controller.table.view);
 };

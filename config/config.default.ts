@@ -78,6 +78,19 @@ export default (appInfo: EggAppInfo) => {
     },
   };
 
+  config.sequelize = {
+    dialect: 'mysql',
+    database: 'mock_data_nsmain',
+    host: 'localhost',
+    port: 3306,
+    username: 'root',
+    password: '123456',
+    define: {
+      createdAt: false,
+      updatedAt: false,
+    },
+  };
+
   // add your special config in here
   const bizConfig = {
     sourceUrl: `https://github.com/eggjs/examples/tree/master/${appInfo.name}`,

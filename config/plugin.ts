@@ -10,6 +10,10 @@ const plugin: EggPlugin = {
     enable: true,
     package: 'egg-view',
   },
+  sequelize: {
+    enable: true,
+    package: 'egg-sequelize',
+  },
   ejs: {
     enable: true,
     package: 'egg-view-ejs',
@@ -18,10 +22,10 @@ const plugin: EggPlugin = {
   //   enable: true,
   //   package: 'egg-mongodb',
   // },
-  mongoose: {
-    enable: true,
-    package: 'egg-mongoose',
-  },
+  // mongoose: {
+  //   enable: true,
+  //   package: 'egg-mongoose',
+  // },
   redis: {
     enable: true,
     package: 'egg-redis',
