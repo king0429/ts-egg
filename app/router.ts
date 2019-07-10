@@ -52,4 +52,6 @@ export default (app: Application) => {
   // 数据分析
   router.get('/data_data', controller.table.index);
   router.get('/table', controller.table.view);
+  // 获取日期转化农历返回
+  router.get('/change_date_local', controller.birthday.getDate);
 };
